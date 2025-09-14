@@ -91,9 +91,19 @@ export default function IngestPage() {
           return [b, Array.isArray(j) ? j : []]
         })
       )
+      const domains: Record<string, string> = {}
+      brData.forEach((d: any) => {
+        if (d.domain) domains[d.name] = d.domain
+      })
       localStorage.setItem(
         'trackingData',
-        JSON.stringify({ branches: names, offsets, data: Object.fromEntries(entries) })
+        JSON.stringify({
+          repo,
+          branches: names,
+          offsets,
+          domains,
+          data: Object.fromEntries(entries)
+        })
       )
     } catch {
       /* ignore prefetch errors */
@@ -173,6 +183,7 @@ export default function IngestPage() {
         localStorage.setItem(
           'trackingData',
           JSON.stringify({
+            repo: repo || file.name,
             branches: ['main'],
             offsets: { main: { x: 0, y: 0, z: 0 } },
             domains: { main: 'other' },

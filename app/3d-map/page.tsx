@@ -76,6 +76,9 @@ export default function MapPage() {
     { text: 'Other', style: { bottom: '2%', left: '2%' } }
   ]
 
+  const FRONT_ZOOM_ALL = 30
+  const FRONT_ZOOM_BRANCH = 100
+
   // Load stored repo/branch on mount
   useEffect(() => {
     const storedRepo = localStorage.getItem('repo') || localStorage.getItem('localRepo')
@@ -106,10 +109,13 @@ export default function MapPage() {
     if (storedTracking) {
       try {
         const parsed = JSON.parse(storedTracking)
-        if (parsed.branches) setBranches(parsed.branches)
-        if (parsed.offsets) setBranchOffsets(parsed.offsets)
-        if (parsed.domains) setBranchDomains(parsed.domains)
-        if (parsed.data) setData(parsed.data)
+        const matchesRepo = !parsed.repo || parsed.repo === storedRepo
+        if (matchesRepo) {
+          if (parsed.branches) setBranches(parsed.branches)
+          if (parsed.offsets) setBranchOffsets(parsed.offsets)
+          if (parsed.domains) setBranchDomains(parsed.domains)
+          if (parsed.data) setData(parsed.data)
+        }
       } catch {}
     }
   }, [])
@@ -134,6 +140,18 @@ export default function MapPage() {
         setBranchDomains({})
         return
       }
+      const stored = localStorage.getItem('trackingData')
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored)
+          if ((!parsed.repo || parsed.repo === repo) && Array.isArray(parsed.branches)) {
+            setBranches(parsed.branches)
+            if (parsed.offsets) setBranchOffsets(parsed.offsets)
+            if (parsed.domains) setBranchDomains(parsed.domains)
+            return
+          }
+        } catch {}
+      }
       if (isRemoteRepo(repo)) {
         fetch(`/api/github/branches?repo=${repo}`)
           .then(r => (r.ok ? r.json() : []))
@@ -148,17 +166,9 @@ export default function MapPage() {
               })
               setBranchOffsets(offMap)
               setBranchDomains(domMap)
-            } else {
-              setBranches([])
-              setBranchOffsets({})
-              setBranchDomains({})
             }
           })
-          .catch(() => {
-            setBranches([])
-            setBranchOffsets({})
-            setBranchDomains({})
-          })
+          .catch(() => {})
       }
     }, 300)
     return () => clearTimeout(handle)
@@ -167,6 +177,16 @@ export default function MapPage() {
   // Analyze commits for remote repos when repo or branch list changes
   useEffect(() => {
     if (!repo || branches.length === 0 || !isRemoteRepo(repo)) return
+    const stored = localStorage.getItem('trackingData')
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored)
+        if ((!parsed.repo || parsed.repo === repo) && parsed.data) {
+          setData(parsed.data)
+          return
+        }
+      } catch {}
+    }
     setLoading(true)
     const run = async () => {
       const entries = await Promise.all(
@@ -181,6 +201,7 @@ export default function MapPage() {
       localStorage.setItem(
         'trackingData',
         JSON.stringify({
+          repo,
           branches,
           offsets: branchOffsets,
           domains: branchDomains,
@@ -756,7 +777,7 @@ export default function MapPage() {
                 makeDefault
                 position={view === 'top' ? [0, 40, 0] : [-40, 0, 0]}
                 rotation={view === 'top' ? [-Math.PI / 2, 0, 0] : undefined}
-                zoom={view === 'front' ? 30 : 40}
+                zoom={view === 'front' ? (branch === 'all' ? FRONT_ZOOM_ALL : FRONT_ZOOM_BRANCH) : 40}
               />
             )}
           <OrbitControls
