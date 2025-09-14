@@ -38,7 +38,7 @@ Create a `.env.local` file with:
 GITHUB_CLIENT_ID=your_client_id
 GITHUB_CLIENT_SECRET=your_client_secret
 GITHUB_WEBHOOK_SECRET=your_webhook_secret
-GITHUB_TOKEN=your_personal_access_token # optional
+GITHUB_TOKEN=your_personal_access_token 
 AIML_API_KEY=your_aiml_api_key          # or OPENAI_API_KEY
 AIML_API_BASE_URL=https://api.aimlapi.com/v1 # optional
 OPENAI_API_KEY=your_openai_key          # optional

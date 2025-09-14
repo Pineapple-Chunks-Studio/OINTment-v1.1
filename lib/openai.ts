@@ -41,7 +41,7 @@ async function chat(
     ? models
     : models
     ? [models]
-    : [process.env.LLM_MODEL || 'gpt-5-chat']
+    : [process.env.LLM_MODEL || 'gpt-4o-mini']
   const modelList = [...base, 'gpt-4o'].filter(
     (v, i, a) => a.indexOf(v) === i
   )
@@ -49,18 +49,15 @@ async function chat(
   for (let i = 0; i < modelList.length; i++) {
     const m = modelList[i]
     try {
-      const res = await client.chat.completions.create({
+      const res = await client.responses.create({
         model: m,
-        messages,
-        reasoning: m.startsWith('gpt-5')
-          ? (({ effort: 'medium' } as unknown) as any)
-          : undefined,
+        input: messages,
         response_format
       } as any)
       if (i > 0) {
         console.warn(`LLM model fallback: using ${m} after ${modelList[i - 1]} failed`)
       }
-      return res.choices[0]?.message?.content ?? '{}'
+      return res.output_text ?? '{}'
     } catch (err) {
       console.error(`LLM model ${m} failed`, err)
       lastErr = err
@@ -94,7 +91,7 @@ export async function summarizeRepo(
     { role: 'user', content }
   ]
 
-  const txt = await chat(messages, { type: 'json_object' }, 'gpt-5-chat')
+  const txt = await chat(messages, { type: 'json_object' }, 'gpt-4o-mini')
   return JSON.parse(txt)
 }
 
@@ -116,7 +113,7 @@ export async function roastRepo(
     },
     { role: 'user', content }
   ]
-  const txt = await chat(messages, { type: 'json_object' }, 'gpt-5-chat')
+  const txt = await chat(messages, { type: 'json_object' }, 'gpt-4o-mini')
   try {
     const parsed = JSON.parse(txt)
     return Array.isArray(parsed.reviews) ? parsed.reviews : []
@@ -151,7 +148,7 @@ export async function applyOint(
     },
     { role: 'user', content }
   ]
-  const txt = await chat(messages, { type: 'json_object' }, 'gpt-5-chat')
+  const txt = await chat(messages, { type: 'json_object' }, 'gpt-4o-mini')
   try {
     const parsed = JSON.parse(txt)
     const comments = Array.isArray(parsed.comments) ? parsed.comments : []
@@ -444,7 +441,7 @@ async function detectAiArtifactsBatch(
     }
   ]
 
-  const txt = await chat(messages, { type: 'json_object' }, 'gpt-5-chat')
+  const txt = await chat(messages, { type: 'json_object' }, 'gpt-4o-mini')
   try {
     const parsed = JSON.parse(txt)
     const fs = Array.isArray(parsed.files) ? parsed.files : []
