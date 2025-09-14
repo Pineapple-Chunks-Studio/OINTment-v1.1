@@ -52,6 +52,7 @@ export default function MapPage() {
   const [showLabels, setShowLabels] = useState(true)
   const [time, setTime] = useState(100)
   const [treeReady, setTreeReady] = useState(false)
+  const isRemoteRepo = (r: string) => /^[\w.-]+\/[\w.-]+$/.test(r)
   const closeModal = () => {
     setSelectedCommit(null)
     setSelectedFiles([])
@@ -124,10 +125,16 @@ export default function MapPage() {
     if (branch !== 'all') setHoveredBranch(null)
   }, [branch])
 
-  // Fetch branches only when repo looks valid
+  // Fetch branches only for remote repos
   useEffect(() => {
     const handle = setTimeout(() => {
-      if (/^[\w.-]+\/[\w.-]+$/.test(repo)) {
+      if (!repo) {
+        setBranches([])
+        setBranchOffsets({})
+        setBranchDomains({})
+        return
+      }
+      if (isRemoteRepo(repo)) {
         fetch(`/api/github/branches?repo=${repo}`)
           .then(r => (r.ok ? r.json() : []))
           .then(data => {
@@ -152,18 +159,14 @@ export default function MapPage() {
             setBranchOffsets({})
             setBranchDomains({})
           })
-      } else {
-        setBranches([])
-        setBranchOffsets({})
-        setBranchDomains({})
       }
     }, 300)
     return () => clearTimeout(handle)
   }, [repo])
 
-  // Analyze commits for all branches when repo or branch list changes
+  // Analyze commits for remote repos when repo or branch list changes
   useEffect(() => {
-    if (!repo || branches.length === 0) return
+    if (!repo || branches.length === 0 || !isRemoteRepo(repo)) return
     setLoading(true)
     const run = async () => {
       const entries = await Promise.all(
