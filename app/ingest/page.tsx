@@ -154,8 +154,32 @@ export default function IngestPage() {
       setLocalRepo(file.name)
       localStorage.setItem('ingestResult', JSON.stringify(data))
       localStorage.setItem('localRepo', file.name)
-      if (repo) localStorage.setItem('repo', repo)
-      if (repo) prefetchTracking(repo)
+      if (repo) {
+        localStorage.setItem('repo', repo)
+        prefetchTracking(repo)
+      } else {
+        const sha = `local-${Date.now().toString(16)}`
+        const commit = {
+          sha,
+          message: 'Local upload',
+          date: new Date().toISOString(),
+          stats: { total: 0 },
+          parents: [],
+          domain: 'other',
+          type: 'feature',
+          status: 'unknown',
+          offset: { x: 0, y: 0, z: 0 }
+        }
+        localStorage.setItem(
+          'trackingData',
+          JSON.stringify({
+            branches: ['main'],
+            offsets: { main: { x: 0, y: 0, z: 0 } },
+            domains: { main: 'other' },
+            data: { main: [commit] }
+          })
+        )
+      }
 
       setError('')
     } catch (err) {
