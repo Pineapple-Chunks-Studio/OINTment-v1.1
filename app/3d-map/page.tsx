@@ -109,10 +109,13 @@ export default function MapPage() {
     if (storedTracking) {
       try {
         const parsed = JSON.parse(storedTracking)
-        if (parsed.branches) setBranches(parsed.branches)
-        if (parsed.offsets) setBranchOffsets(parsed.offsets)
-        if (parsed.domains) setBranchDomains(parsed.domains)
-        if (parsed.data) setData(parsed.data)
+        const matchesRepo = !parsed.repo || parsed.repo === storedRepo
+        if (matchesRepo) {
+          if (parsed.branches) setBranches(parsed.branches)
+          if (parsed.offsets) setBranchOffsets(parsed.offsets)
+          if (parsed.domains) setBranchDomains(parsed.domains)
+          if (parsed.data) setData(parsed.data)
+        }
       } catch {}
     }
   }, [])
@@ -137,6 +140,18 @@ export default function MapPage() {
         setBranchDomains({})
         return
       }
+      const stored = localStorage.getItem('trackingData')
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored)
+          if ((!parsed.repo || parsed.repo === repo) && Array.isArray(parsed.branches)) {
+            setBranches(parsed.branches)
+            if (parsed.offsets) setBranchOffsets(parsed.offsets)
+            if (parsed.domains) setBranchDomains(parsed.domains)
+            return
+          }
+        } catch {}
+      }
       if (isRemoteRepo(repo)) {
         fetch(`/api/github/branches?repo=${repo}`)
           .then(r => (r.ok ? r.json() : []))
@@ -151,17 +166,9 @@ export default function MapPage() {
               })
               setBranchOffsets(offMap)
               setBranchDomains(domMap)
-            } else {
-              setBranches([])
-              setBranchOffsets({})
-              setBranchDomains({})
             }
           })
-          .catch(() => {
-            setBranches([])
-            setBranchOffsets({})
-            setBranchDomains({})
-          })
+          .catch(() => {})
       }
     }, 300)
     return () => clearTimeout(handle)
@@ -170,6 +177,16 @@ export default function MapPage() {
   // Analyze commits for remote repos when repo or branch list changes
   useEffect(() => {
     if (!repo || branches.length === 0 || !isRemoteRepo(repo)) return
+    const stored = localStorage.getItem('trackingData')
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored)
+        if ((!parsed.repo || parsed.repo === repo) && parsed.data) {
+          setData(parsed.data)
+          return
+        }
+      } catch {}
+    }
     setLoading(true)
     const run = async () => {
       const entries = await Promise.all(
@@ -184,6 +201,7 @@ export default function MapPage() {
       localStorage.setItem(
         'trackingData',
         JSON.stringify({
+          repo,
           branches,
           offsets: branchOffsets,
           domains: branchDomains,
