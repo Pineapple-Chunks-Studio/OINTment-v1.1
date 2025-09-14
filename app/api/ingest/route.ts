@@ -72,19 +72,24 @@ export async function POST(req: NextRequest) {
     content: e.getData().toString('utf8').slice(0, 10000)
   }))
 
+  const defaultAnalysis = {
+    overview: '',
+    takeaways: [],
+    metrics: { complexity: 0, documentation: 0, tests: 0 }
+  }
+  let analysis = defaultAnalysis
   try {
-    const analysis = await summarizeRepo(files, docs)
-    return NextResponse.json({
-      repo,
-      branch,
-      files,
-      code,
-      docs,
-      analysis
-    })
+    analysis = await summarizeRepo(files, docs)
   } catch (err) {
     const message = err instanceof Error ? err.message : 'analysis failed'
     console.error('analysis failed', err)
-    return NextResponse.json({ error: message }, { status: 500 })
   }
+  return NextResponse.json({
+    repo,
+    branch,
+    files,
+    code,
+    docs,
+    analysis
+  })
 }
