@@ -318,10 +318,10 @@ export default function RoasterPage() {
       const updated = { ...empty }
       comments.forEach((c: Comment) => {
         const key = c.department.toLowerCase() as Department
-        if (updated[key]) updated[key] = c
+        if (updated[key]) updated[key] = { ...c, temperature: level }
       })
       setWidgets(updated)
-      setRoast(comments)
+      setRoast(comments.map(c => ({ ...c, temperature: level })))
       localStorage.setItem('vulnChecked', 'true')
       setError('')
     } catch (err) {
@@ -412,7 +412,7 @@ export default function RoasterPage() {
         <div className="flex items-start justify-between">
           <h1 className="text-2xl font-semibold tracking-tight">Roaster</h1>
           <div className="text-right leading-tight">
-            <div className="text-5xl font-bold">Roaster v0.1.9</div>
+            <div className="text-5xl font-bold">Roaster v0.2.0</div>
             <div className="text-sm text-zinc-400">AI-powered code critique, assisting in project management</div>
           </div>
         </div>
@@ -465,6 +465,13 @@ export default function RoasterPage() {
         <div className="grid sm:grid-cols-3 gap-4">
           {departments.map(d => {
             const w = widgets[d]
+            const issues = (Array.isArray(w.comment)
+              ? w.comment
+              : typeof w.comment === 'string'
+              ? w.comment.split('\n')
+              : []
+            ).filter(Boolean)
+            const width = Math.min(100, w.temperature * 100 + Math.min(5, issues.length))
             return (
               <div key={d} className="p-4 rounded-xl bg-zinc-900/60 border border-zinc-800">
                 <div className="flex items-center justify-between mb-1">
@@ -474,20 +481,15 @@ export default function RoasterPage() {
                 <ul
                   className={`text-sm list-disc list-inside ${w.temperature > 0.66 ? 'text-rose-400' : w.temperature > 0.33 ? 'text-amber-300' : 'text-emerald-400'}`}
                 >
-                  {(Array.isArray(w.comment)
-                    ? w.comment
-                    : typeof w.comment === 'string'
-                    ? w.comment.split('\n')
-                    : []
-                  ).map((c, i) => (
+                  {issues.map((c, i) => (
                     <li key={i}>{c}</li>
                   ))}
                 </ul>
-              <div className="h-1 bg-zinc-800 rounded-full mt-2">
-                <div
-                  className={`h-full rounded-full ${w.temperature > 0.66 ? 'bg-rose-500' : w.temperature > 0.33 ? 'bg-amber-400' : 'bg-emerald-500'}`}
-                  style={{ width: `${w.temperature * 100}%` }}
-                />
+                <div className="h-1 bg-zinc-800 rounded-full mt-2">
+                  <div
+                    className={`h-full rounded-full ${w.temperature > 0.66 ? 'bg-rose-500' : w.temperature > 0.33 ? 'bg-amber-400' : 'bg-emerald-500'}`}
+                    style={{ width: `${width}%` }}
+                  />
                 </div>
               </div>
             )
@@ -505,6 +507,13 @@ export default function RoasterPage() {
           <div className="grid sm:grid-cols-3 gap-4">
             {departments.map(d => {
               const w = ointWidgets[d]
+              const issues = (Array.isArray(w.comment)
+                ? w.comment
+                : typeof w.comment === 'string'
+                ? w.comment.split('\n')
+                : []
+              ).filter(Boolean)
+              const width = Math.min(100, w.temperature * 100 + Math.min(5, issues.length))
               return (
                 <div key={d} className="p-4 rounded-xl bg-zinc-900/60 border border-zinc-700">
                   <div className="flex items-center justify-between mb-1">
@@ -514,19 +523,14 @@ export default function RoasterPage() {
                   <ul
                     className={`text-sm list-disc list-inside ${w.temperature > 0.66 ? 'text-rose-400' : w.temperature > 0.33 ? 'text-amber-300' : 'text-emerald-400'}`}
                   >
-                    {(Array.isArray(w.comment)
-                      ? w.comment
-                      : typeof w.comment === 'string'
-                      ? w.comment.split('\n')
-                      : []
-                    ).map((c, i) => (
+                    {issues.map((c, i) => (
                       <li key={i}>{c}</li>
                     ))}
                   </ul>
                   <div className="h-1 bg-zinc-800 rounded-full mt-2">
                     <div
                       className={`h-full rounded-full ${w.temperature > 0.66 ? 'bg-rose-500' : w.temperature > 0.33 ? 'bg-amber-400' : 'bg-emerald-500'}`}
-                      style={{ width: `${w.temperature * 100}%` }}
+                      style={{ width: `${width}%` }}
                     />
                   </div>
                 </div>

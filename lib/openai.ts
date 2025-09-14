@@ -29,7 +29,11 @@ const baseURL = process.env.AIML_API_KEY
   ? process.env.AIML_API_BASE_URL || 'https://api.aimlapi.com/v1'
   : process.env.OPENAI_BASE_URL
 
-const client = new OpenAI({ apiKey, baseURL })
+const client = new OpenAI({
+  apiKey,
+  baseURL,
+  defaultHeaders: { 'OpenAI-Beta': 'assistants=v1' }
+})
 
 async function chat(
   messages: any[],
@@ -61,7 +65,25 @@ async function chat(
       // Some models occasionally wrap JSON in ```json fences; strip them
       text = text.replace(/^```(?:json)?\n/, '').replace(/```$/, '')
       return text
-    } catch (err) {
+    } catch (err: any) {
+      // Some providers may forbid the Responses API; fall back to Chat Completions
+      if (err?.status === 403 || err?.response?.status === 403) {
+        try {
+          const alt = await client.chat.completions.create({
+            model: m,
+            messages
+          })
+          if (i > 0) {
+            console.warn(`LLM model fallback: using ${m} chat completions after responses failed`)
+          }
+          const txt = alt.choices?.[0]?.message?.content || '{}'
+          return txt.replace(/^```(?:json)?\n/, '').replace(/```$/, '')
+        } catch (e) {
+          console.error(`LLM model ${m} chat completions failed`, e)
+          lastErr = e
+          continue
+        }
+      }
       console.error(`LLM model ${m} failed`, err)
       lastErr = err
     }
