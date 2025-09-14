@@ -76,6 +76,9 @@ export default function MapPage() {
     { text: 'Other', style: { bottom: '2%', left: '2%' } }
   ]
 
+  const FRONT_ZOOM_ALL = 30
+  const FRONT_ZOOM_BRANCH = 100
+
   // Load stored repo/branch on mount
   useEffect(() => {
     const storedRepo = localStorage.getItem('repo') || localStorage.getItem('localRepo')
@@ -756,7 +759,7 @@ export default function MapPage() {
                 makeDefault
                 position={view === 'top' ? [0, 40, 0] : [-40, 0, 0]}
                 rotation={view === 'top' ? [-Math.PI / 2, 0, 0] : undefined}
-                zoom={view === 'front' ? 30 : 40}
+                zoom={view === 'front' ? (branch === 'all' ? FRONT_ZOOM_ALL : FRONT_ZOOM_BRANCH) : 40}
               />
             )}
           <OrbitControls
