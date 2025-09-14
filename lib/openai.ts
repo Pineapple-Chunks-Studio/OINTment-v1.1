@@ -119,7 +119,16 @@ export async function roastRepo(
   const txt = await chat(messages, { type: 'json_object' }, 'gpt-4o-mini')
   try {
     const parsed = JSON.parse(txt)
-    return Array.isArray(parsed.reviews) ? parsed.reviews : []
+    const reviews = Array.isArray(parsed.reviews) ? parsed.reviews : []
+    return reviews.map((r: any) => ({
+      department: r.department,
+      comment: Array.isArray(r.comment)
+        ? r.comment.join('\n')
+        : typeof r.comment === 'string'
+        ? r.comment
+        : '',
+      temperature: typeof r.temperature === 'number' ? r.temperature : 0
+    }))
   } catch {
     return []
   }
@@ -156,7 +165,16 @@ export async function applyOint(
     const parsed = JSON.parse(txt)
     const comments = Array.isArray(parsed.comments) ? parsed.comments : []
     const steps = Array.isArray(parsed.steps) ? parsed.steps : []
-    return { comments, steps }
+    const normalized = comments.map((c: any) => ({
+      department: c.department,
+      comment: Array.isArray(c.comment)
+        ? c.comment.join('\n')
+        : typeof c.comment === 'string'
+        ? c.comment
+        : '',
+      temperature: typeof c.temperature === 'number' ? c.temperature : 0
+    }))
+    return { comments: normalized, steps }
   } catch {
     return { comments: [], steps: [] }
   }

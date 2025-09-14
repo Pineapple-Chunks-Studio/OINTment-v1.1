@@ -474,7 +474,12 @@ export default function RoasterPage() {
                 <ul
                   className={`text-sm list-disc list-inside ${w.temperature > 0.66 ? 'text-rose-400' : w.temperature > 0.33 ? 'text-amber-300' : 'text-emerald-400'}`}
                 >
-                  {w.comment.split('\n').map((c, i) => (
+                  {(Array.isArray(w.comment)
+                    ? w.comment
+                    : typeof w.comment === 'string'
+                    ? w.comment.split('\n')
+                    : []
+                  ).map((c, i) => (
                     <li key={i}>{c}</li>
                   ))}
                 </ul>
@@ -509,7 +514,12 @@ export default function RoasterPage() {
                   <ul
                     className={`text-sm list-disc list-inside ${w.temperature > 0.66 ? 'text-rose-400' : w.temperature > 0.33 ? 'text-amber-300' : 'text-emerald-400'}`}
                   >
-                    {w.comment.split('\n').map((c, i) => (
+                    {(Array.isArray(w.comment)
+                      ? w.comment
+                      : typeof w.comment === 'string'
+                      ? w.comment.split('\n')
+                      : []
+                    ).map((c, i) => (
                       <li key={i}>{c}</li>
                     ))}
                   </ul>
