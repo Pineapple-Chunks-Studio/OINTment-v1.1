@@ -20,7 +20,9 @@ const links: { href: string; label: ReactNode; extra?: string; brand?: boolean }
   { href: '/roaster', label: 'Roaster' },
   { href: '/vibe-killer', label: 'Vibe Killer' },
   { href: '/toolset', label: 'Toolset' },
-  { href: '/3d-map', label: '3D Map' }
+  { href: '/3d-map', label: '3D Map' },
+  { href: '/help', label: 'Help' },
+  { href: '/privacy', label: 'Privacy' }
 ]
 
 export default function TopNav({ isLoggedIn }: { isLoggedIn: boolean }) {
