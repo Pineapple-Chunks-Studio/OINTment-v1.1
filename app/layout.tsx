@@ -3,6 +3,7 @@ import './globals.css';
 import { ReactNode } from 'react';
 import { cookies } from 'next/headers';
 import TopNav from '../components/TopNav';
+import Footer from '../components/Footer';
 
 
 export const metadata = {
@@ -21,6 +22,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <TopNav isLoggedIn={isLoggedIn} />
         </header>
         {children}
+        <Footer />
       </body>
 
     </html>

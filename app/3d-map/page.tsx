@@ -79,9 +79,27 @@ export default function MapPage() {
   useEffect(() => {
     const storedRepo = localStorage.getItem('repo')
     const storedBranch = localStorage.getItem('branch')
+    const ingest = localStorage.getItem('ingestResult')
+    const ingestBranch = localStorage.getItem('ingestBranch')
     const storedTracking = localStorage.getItem('trackingData')
-    if (storedRepo) setRepo(storedRepo)
-    if (storedBranch) setBranch(storedBranch)
+    let parsedIngest: any = null
+    if (ingest) {
+      try {
+        parsedIngest = JSON.parse(ingest)
+      } catch {}
+    }
+    if (storedRepo) {
+      setRepo(storedRepo)
+    } else if (parsedIngest?.repo) {
+      setRepo(parsedIngest.repo)
+    }
+    if (storedBranch) {
+      setBranch(storedBranch)
+    } else if (ingestBranch) {
+      setBranch(ingestBranch)
+    } else if (parsedIngest?.branch) {
+      setBranch(parsedIngest.branch)
+    }
     if (storedTracking) {
       try {
         const parsed = JSON.parse(storedTracking)
