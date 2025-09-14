@@ -287,7 +287,13 @@ export default function RoasterPage() {
 
   useEffect(() => {
     const stored = localStorage.getItem('ingestResult')
-    if (stored) setResult(JSON.parse(stored))
+    if (stored) {
+      try {
+        setResult(JSON.parse(stored))
+      } catch {
+        localStorage.removeItem('ingestResult')
+      }
+    }
   }, [])
 
   useEffect(() => {

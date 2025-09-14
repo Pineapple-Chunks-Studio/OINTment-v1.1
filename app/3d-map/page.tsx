@@ -77,7 +77,7 @@ export default function MapPage() {
 
   // Load stored repo/branch on mount
   useEffect(() => {
-    const storedRepo = localStorage.getItem('repo')
+    const storedRepo = localStorage.getItem('repo') || localStorage.getItem('localRepo')
     const storedBranch = localStorage.getItem('branch')
     const ingest = localStorage.getItem('ingestResult')
     const ingestBranch = localStorage.getItem('ingestBranch')
@@ -92,6 +92,8 @@ export default function MapPage() {
       setRepo(storedRepo)
     } else if (parsedIngest?.repo) {
       setRepo(parsedIngest.repo)
+    } else if (parsedIngest?.localRepo) {
+      setRepo(parsedIngest.localRepo)
     }
     if (storedBranch) {
       setBranch(storedBranch)
@@ -655,7 +657,7 @@ export default function MapPage() {
 
   return (
     <div className="relative min-h-screen text-zinc-200">
-      <HexBackground />
+      <HexBackground className="-z-30" />
       <div
         className="fixed inset-0 -z-10"
         style={{
@@ -736,7 +738,7 @@ export default function MapPage() {
             />
           )}
         </div>
-        <div className="h-[500px] w-full bg-black/40 rounded-xl overflow-hidden relative">
+        <div className="relative z-10 h-[500px] w-full bg-black/40 rounded-xl overflow-hidden">
           {loading && (
             <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/60">
               <div className="h-8 w-8 animate-spin rounded-full border-2 border-zinc-600 border-t-emerald-500" />
