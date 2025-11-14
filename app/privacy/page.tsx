@@ -87,6 +87,13 @@ export default function PrivacyPage() {
                 maintain state and to implement CSRF protection. These cookies are essential to the
                 operation of the app and do not track you for advertising purposes.
               </li>
+              <li>
+                <strong>Local device caches –</strong> To make repeat visits faster, we store your latest
+                ingest result, repository selection, commit-map payloads (SHA, message, status, and
+                offsets), Vibe Killer results, and Mission Control dashboards in your browser’s
+                localStorage. These caches remain on your device, are never transmitted back to us,
+                and can be cleared at any time from the UI or via your browser settings.
+              </li>
             </ul>
           </div>
           <div>
@@ -107,6 +114,15 @@ export default function PrivacyPage() {
               </li>
             </ul>
           </div>
+          <div>
+            <h3 className="font-semibold text-cyan-300">3.4 Ephemeral orchestration data</h3>
+            <p className="mt-3 text-sm md:text-base">
+              <strong>OINT creation state –</strong> When you launch the Mission Control/OINT workflow, we
+              keep the uploaded documents, repository file list, and sampled code snippets in an
+              in-memory store on the server while the dashboard is assembled. This cache is discarded
+              once the response is returned and is never written to disk.
+            </p>
+          </div>
         </div>
       ),
     },
@@ -126,6 +142,11 @@ export default function PrivacyPage() {
           </li>
           <li>Communicate with you regarding service-related announcements or enquiries.</li>
           <li>Ensure security, detect abuse, debug issues, and improve stability.</li>
+          <li>
+            Run the OINT dashboard – the /api/oint endpoints reuse the in-memory document/code
+            snapshot captured during creation so that we can populate the Mission Control view
+            without re-uploading your materials.
+          </li>
           <li>We do not use your personal data for advertising or marketing purposes.</li>
         </ul>
       ),
@@ -180,6 +201,12 @@ export default function PrivacyPage() {
             data controller for the content of repositories.
           </li>
           <li>
+            <strong>Dependency metadata & logos –</strong> Opening the Architecture Matrix triggers a
+            request to the public npm registry for the dependency names extracted from your
+            repository and displays Clearbit-hosted logos for those domains. Both services receive
+            only package identifiers, never your authentication tokens.
+          </li>
+          <li>
             <strong>Legal or regulatory authorities –</strong> We may disclose personal data if required by
             law, regulation, legal process, or to protect the rights, property, or safety of
             OINTment or others.
@@ -223,6 +250,11 @@ export default function PrivacyPage() {
             <li>
               If you withdraw consent or request deletion, we will remove your data unless retention
               is required by law or needed to protect our legal claims.
+            </li>
+            <li>
+              Client-side caches (e.g. localStorage) stay on your device until you clear them from
+              the UI or your browser. In-memory orchestration data that powers the OINT dashboard is
+              automatically dropped after each request.
             </li>
           </ul>
         </div>
@@ -338,6 +370,40 @@ export default function PrivacyPage() {
         </div>
       ),
     },
+    {
+      title: '14. Technical reference: how to verify these commitments',
+      content: (
+        <div className="space-y-3 text-zinc-200">
+          <ul className="list-disc space-y-2 pl-6 text-sm md:text-base">
+            <li>
+              <strong>Repository ingest & truncation –</strong> /api/ingest receives uploaded ZIPs or
+              GitHub archives, truncates each file/doc to 10,000 characters, and forwards only the
+              file list plus docs to the LLM analyzers.
+            </li>
+            <li>
+              <strong>Commit metadata processing –</strong> /api/github/commits fetches commit SHAs,
+              statuses, and messages, classifies them through categorizeCommits/jitterOffsets, and
+              caches them locally for the 3D map.
+            </li>
+            <li>
+              <strong>Mission Control/OINT –</strong> /api/oint/create, /api/oint/summary, and
+              /api/oint/apply use an in-memory state.ts module to reuse the submitted docs/files for a
+              single dashboard session.
+            </li>
+            <li>
+              <strong>Client-side caches –</strong> Pages such as /ingest, /matrix, /3d-map, /vibe-killer,
+              /roaster, and /toolset set and read localStorage keys (ingestResult, trackingData, repo,
+              branch, vibeResult, ointData, etc.) purely within your browser.
+            </li>
+            <li>
+              <strong>Third-party lookups –</strong> /api/components queries the npm registry for package
+              metadata and returns Clearbit logo URLs, while never exposing your GitHub tokens to
+              those services.
+            </li>
+          </ul>
+        </div>
+      ),
+    },
   ]
 
   return (
@@ -348,7 +414,7 @@ export default function PrivacyPage() {
           <header className="text-center">
             <p className="text-xs uppercase tracking-[0.3em] text-cyan-300">Privacy & Compliance</p>
             <h1 className="mt-4 text-4xl font-bold text-white sm:text-5xl">Privacy Policy for OINTment</h1>
-            <p className="mt-3 text-sm text-zinc-400">Last updated: 14 September 2025</p>
+            <p className="mt-3 text-sm text-zinc-400">Last updated: 16 September 2025</p>
           </header>
 
           <div className="grid gap-6">
