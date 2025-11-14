@@ -63,11 +63,24 @@ The Supabase database should contain a `usage_limits` table with:
 
 ## GitHub Marketplace paid plan
 
-- `/profile` introduces the paid plan limitations and provides a button to confirm payment via the GitHub Marketplace webhook HMAC token.
-- `/api/marketplace` validates the token, stores plan enrollment in Supabase and returns usage + allowance data.
+- `/profile` introduces the paid plan limitations and links to the webhook inputs required by GitHub Marketplace.
+- `/api/marketplace` acts as the webhook endpoint. It validates the `X-Hub-Signature-256` header, stores plan enrollment in Supabase and returns usage + allowance data.
 - `/api/usage` is used by automated flows to reserve sessions, record project submissions (limited to 30 per month) and enforce a maximum of 3 runs per compute core.
 
 Users exceeding the concurrent session cap receive an error response, preventing additional sessions and mitigating DDoS spikes.
+
+### Marketplace webhook configuration
+
+Use these exact values on the Marketplace listing form (see screenshot in the issue statement):
+
+| Field | Value |
+| --- | --- |
+| Payload URL | `https://<your-domain>/api/marketplace` |
+| Content type | `application/x-www-form-urlencoded` |
+| Secret | `MARKETPLACE_SHARED_SECRET` |
+| Active | Checked |
+
+GitHub sends the purchase payload as `payload=<json>` inside the form-encoded body. The API validates the signature, maps the Marketplace account to a `github-marketplace-<account-id>` user and flips the Supabase usage snapshot to `is_paid = true` for `purchased`, `renewed`, `pending_change`, or `changed` events. `cancelled` events flag the account as unpaid.
 
 ### Scripts
 

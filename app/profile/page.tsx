@@ -23,7 +23,6 @@ type PlanResponse = {
 
 export default function ProfilePage() {
   const [userId, setUserId] = useState(DEFAULT_USER_ID)
-  const [purchaseToken, setPurchaseToken] = useState('')
   const [response, setResponse] = useState<PlanResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -51,27 +50,6 @@ export default function ProfilePage() {
     fetchUsage(userId)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
-
-  const activatePlan = async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      const res = await fetch('/api/marketplace', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, purchaseToken })
-      })
-      const json = await res.json()
-      if (!res.ok) {
-        throw new Error(json.error || 'Unable to activate plan')
-      }
-      setResponse(json)
-    } catch (err) {
-      setError((err as Error).message)
-    } finally {
-      setLoading(false)
-    }
-  }
 
   const usage = response?.usage
   const sessionUsage = useMemo(() => {
@@ -107,30 +85,19 @@ export default function ProfilePage() {
               className="w-full rounded-md bg-zinc-950 border border-zinc-800 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500"
             />
           </div>
-          <div className="space-y-2">
-            <p className="text-zinc-400 text-xs">Purchase Token</p>
-            <input
-              value={purchaseToken}
-              onChange={(event) => setPurchaseToken(event.target.value)}
-              placeholder="sha256 hmac from GitHub webhook"
-              className="w-full rounded-md bg-zinc-950 border border-zinc-800 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500"
-            />
-          </div>
-          <div className="flex items-end gap-3">
+          <div className="space-y-2 md:col-span-2">
+            <p className="text-zinc-400 text-xs">Usage Sync</p>
             <button
               onClick={() => fetchUsage(userId)}
-              className="flex-1 rounded-md bg-zinc-800 px-4 py-2 text-sm border border-zinc-700 hover:bg-zinc-700 transition"
+              className="w-full rounded-md bg-emerald-500/90 px-4 py-2 text-sm font-semibold text-black hover:bg-emerald-400 transition"
               disabled={loading}
             >
               Refresh Overview
             </button>
-            <button
-              onClick={activatePlan}
-              className="flex-1 rounded-md bg-emerald-500/90 px-4 py-2 text-sm font-semibold text-black hover:bg-emerald-400 transition"
-              disabled={loading}
-            >
-              Confirm Payment
-            </button>
+            <p className="text-[13px] text-zinc-500">
+              Webhook confirmations flow into this profile automatically. Use the field above only when you want to preview
+              another account&apos;s usage snapshot for support.
+            </p>
           </div>
         </section>
 
@@ -182,8 +149,8 @@ export default function ProfilePage() {
           <h3 className="text-lg font-semibold">Operational Notes</h3>
           <ul className="list-disc text-sm text-zinc-400 ml-6 space-y-2">
             <li>
-              Confirming payment is as simple as sending the HMAC token GitHub posts to your webhook. We repeat the hash check on
-              this page before enabling the plan server-side.
+              Confirm payment by pointing the GitHub Marketplace webhook to <code>/api/marketplace</code> — no manual tokens or
+              buttons are needed.
             </li>
             <li>
               Every usage event (session start, ingestion, AI core execution) is persisted via Supabase to coordinate throttling
@@ -195,6 +162,40 @@ export default function ProfilePage() {
             </li>
           </ul>
         </section>
+
+        <section className="bg-black/30 rounded-xl border border-emerald-900 p-6 space-y-4">
+          <h3 className="text-lg font-semibold text-emerald-300">GitHub Marketplace Webhook inputs</h3>
+          <p className="text-sm text-zinc-300">
+            Use these values when filling out the listing form shown above. Every purchase, change, or cancellation triggers the
+            webhook which updates the Supabase-backed usage snapshot instantly.
+          </p>
+          <div className="grid gap-4 md:grid-cols-2">
+            <WebhookField label="Payload URL" value="https://&lt;your-domain&gt;/api/marketplace" />
+            <WebhookField label="Content type" value="application/x-www-form-urlencoded" />
+            <WebhookField label="Secret" value="MARKETPLACE_SHARED_SECRET" />
+            <WebhookField label="Events" value="Marketplace (purchased, changed, cancelled, etc.)" />
+          </div>
+          <p className="text-xs text-zinc-500">
+            Toggle the webhook <strong>Active</strong> in the Marketplace settings and keep SSL enabled so GitHub can deliver the
+            signed events. The API validates the <code>X-Hub-Signature-256</code> header before applying any changes.
+          </p>
+        </section>
+      </div>
+    </div>
+  )
+}
+
+type WebhookFieldProps = {
+  label: string
+  value: string
+}
+
+function WebhookField({ label, value }: WebhookFieldProps) {
+  return (
+    <div className="space-y-1">
+      <p className="text-xs uppercase tracking-[0.3em] text-zinc-500">{label}</p>
+      <div className="rounded-md border border-zinc-800 bg-zinc-950 px-3 py-2 text-sm font-mono text-emerald-200 break-words">
+        {value}
       </div>
     </div>
   )
