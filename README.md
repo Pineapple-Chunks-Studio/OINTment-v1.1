@@ -44,7 +44,43 @@ AIML_API_BASE_URL=https://api.aimlapi.com/v1 # optional
 OPENAI_API_KEY=your_openai_key          # optional
 OPENAI_BASE_URL=https://api.openai.com/v1 # optional
 LLM_MODEL=gpt-5-chat                    # optional model override
+SUPABASE_URL=your_supabase_url
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+MARKETPLACE_SHARED_SECRET=github_marketplace_webhook_secret
 ```
+
+The Supabase database should contain a `usage_limits` table with:
+
+| Column | Type | Notes |
+| --- | --- | --- |
+| `user_id` | text | Identifier used by the profile page/API |
+| `billing_month` | text | `YYYY-MM` cycle stamp |
+| `plan_id` | text | e.g. `github-marketplace-pro` |
+| `is_paid` | boolean | Indicates whether payment has been confirmed |
+| `active_sessions` | integer | Tracks concurrent sessions for DDoS protection |
+| `project_submissions` | integer | Counts monthly project ingests |
+| `core_runs` | jsonb | Map of `{ coreId: runs }` |
+
+## GitHub Marketplace paid plan
+
+- `/profile` introduces the paid plan limitations and links to the webhook inputs required by GitHub Marketplace.
+- `/api/marketplace` acts as the webhook endpoint. It validates the `X-Hub-Signature-256` header, stores plan enrollment in Supabase and returns usage + allowance data.
+- `/api/usage` is used by automated flows to reserve sessions, record project submissions (limited to 30 per month) and enforce a maximum of 3 runs per compute core.
+
+Users exceeding the concurrent session cap receive an error response, preventing additional sessions and mitigating DDoS spikes.
+
+### Marketplace webhook configuration
+
+Use these exact values on the Marketplace listing form (see screenshot in the issue statement):
+
+| Field | Value |
+| --- | --- |
+| Payload URL | `https://<your-domain>/api/marketplace` |
+| Content type | `application/x-www-form-urlencoded` |
+| Secret | `MARKETPLACE_SHARED_SECRET` |
+| Active | Checked |
+
+GitHub sends the purchase payload as `payload=<json>` inside the form-encoded body. The API validates the signature, maps the Marketplace account to a `github-marketplace-<account-id>` user and flips the Supabase usage snapshot to `is_paid = true` for `purchased`, `renewed`, `pending_change`, or `changed` events. `cancelled` events flag the account as unpaid.
 
 ### Scripts
 

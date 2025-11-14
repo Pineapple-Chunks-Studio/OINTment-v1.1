@@ -9,19 +9,20 @@
     "test": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@react-three/drei": "^9.99.4",
+    "@react-three/fiber": "^8.15.10",
+    "@react-three/postprocessing": "^2.15.8",
+    "@supabase/supabase-js": "^2.81.1",
     "adm-zip": "^0.5.16",
     "chart.js": "^4.5.0",
     "lucide-react": "^0.300.0",
+    "marked": "^9.1.2",
     "next": "14.1.0",
     "openai": "^5.12.2",
     "react": "18.2.0",
     "react-chartjs-2": "^5.3.0",
     "react-dom": "18.2.0",
-    "marked": "^9.1.2",
-    "three": "^0.160.0",
-    "@react-three/fiber": "^8.15.10",
-    "@react-three/drei": "^9.99.4",
-    "@react-three/postprocessing": "^2.15.8"
+    "three": "^0.160.0"
   },
   "devDependencies": {
     "@types/adm-zip": "^0.5.7",

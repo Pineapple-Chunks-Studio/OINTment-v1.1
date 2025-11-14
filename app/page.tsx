@@ -55,6 +55,12 @@ export default function Home() {
             <span className="absolute inset-0 rounded-lg ring-1 ring-white/10 group-hover:ring-emerald-400/50" />
             <span className="relative">OINT Mission Control</span>
           </Link>
+          <Link
+            href="/profile"
+            className="px-4 py-2 rounded-lg bg-zinc-900 border border-emerald-500/30 text-emerald-300 hover:bg-zinc-900/70 transition"
+          >
+            Paid Plan
+          </Link>
         </div>
         <div className="pt-8 text-sm text-zinc-400 max-w-prose">
           <p>
